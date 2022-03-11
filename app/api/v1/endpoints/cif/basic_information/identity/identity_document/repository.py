@@ -48,7 +48,8 @@ from app.utils.constant.cif import (
     EKYC_IDENTITY_TYPE_FRONT_SIDE_CITIZEN_CARD,
     EKYC_IDENTITY_TYPE_FRONT_SIDE_IDENTITY_CARD,
     IDENTITY_DOCUMENT_TYPE_CITIZEN_CARD, IDENTITY_DOCUMENT_TYPE_IDENTITY_CARD,
-    IDENTITY_DOCUMENT_TYPE_PASSPORT, RESIDENT_ADDRESS_CODE
+    IDENTITY_DOCUMENT_TYPE_PASSPORT, IMAGE_TYPE_CODE_IDENTITY,
+    RESIDENT_ADDRESS_CODE
 )
 from app.utils.error_messages import (
     ERROR_CALL_SERVICE_EKYC, ERROR_CALL_SERVICE_FILE, ERROR_CIF_ID_NOT_EXIST,
@@ -144,7 +145,6 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
         .join(CustomerIndividualInfo, Customer.id == CustomerIndividualInfo.customer_id)
         .outerjoin(CustomerAddress, Customer.id == CustomerAddress.customer_id)
         .outerjoin(CustomerIdentityImage, CustomerIdentity.id == CustomerIdentityImage.identity_id)
-        .outerjoin(CustomerCompareImage, CustomerIdentityImage.id == CustomerCompareImage.identity_image_id)
         .outerjoin(CustomerCompareImage, CustomerIdentityImage.id == CustomerCompareImage.identity_image_id)
         .outerjoin(CustomerIdentityType, CustomerIdentity.identity_type_id == CustomerIdentityType.id)
 
@@ -301,34 +301,39 @@ async def repos_get_detail_identity(cif_id: str, session: Session) -> ReposRetur
 
     # HO_CHIEU
     else:
-        response_data['passport_information'] = {
-            "identity_image_url": first_row.CustomerIdentityImage.image_url,
-            "face_compare_image_url": first_row.CustomerCompareImage.compare_image_url,
-            "identity_avatar_image_uuid": first_row.CustomerIdentityImage.avatar_image_uuid,
-            "face_uuid_ekyc": first_row.CustomerCompareImage.id,
-            "similar_percent": first_row.CustomerCompareImage.similar_percent,
-            "fingerprint": fingerprints,
-        }
+        # Vì Compare Image không chỉ so sánh Mỗi khuôn mặt mà có cả vân tay, chữ ký
+        # => tìm Compare Image so sánh khuôn mặt trong GTDD
+        for row in identities:
+            if row.CustomerIdentityImage.image_type_id == IMAGE_TYPE_CODE_IDENTITY and \
+                    row.CustomerIdentity.identity_type_id == IDENTITY_DOCUMENT_TYPE_PASSPORT:
+                response_data['passport_information'] = {
+                    "identity_image_url": row.CustomerIdentityImage.image_url,
+                    "face_compare_image_url": row.CustomerCompareImage.compare_image_url,
+                    "identity_avatar_image_uuid": row.CustomerIdentityImage.avatar_image_uuid,
+                    "face_uuid_ekyc": row.CustomerCompareImage.id,
+                    "similar_percent": row.CustomerCompareImage.similar_percent,
+                    "fingerprint": fingerprints,
+                }
 
-        response_data['ocr_result'] = {
-            'identity_document': {
-                "identity_number": first_row.CustomerIdentity.identity_num,
-                "issued_date": first_row.CustomerIdentity.issued_date,
-                "place_of_issue": dropdown(first_row.PlaceOfIssue),
-                "expired_date": first_row.CustomerIdentity.expired_date,
-                "passport_type": dropdown(first_row.PassportType),
-                "passport_code": dropdown(first_row.PassportCode)
-            },
-            'basic_information': {
-                "full_name_vn": first_row.Customer.full_name_vn,
-                "gender": dropdown(first_row.CustomerGender),
-                "date_of_birth": first_row.CustomerIndividualInfo.date_of_birth,
-                "nationality": dropdown(first_row.AddressCountry),
-                "place_of_birth": dropdown(first_row.PlaceOfBirth),
-                "identity_card_number": first_row.CustomerIdentity.identity_number_in_passport,
-                "mrz_content": first_row.CustomerIdentity.mrz_content
-            }
-        }
+                response_data['ocr_result'] = {
+                    'identity_document': {
+                        "identity_number": row.CustomerIdentity.identity_num,
+                        "issued_date": row.CustomerIdentity.issued_date,
+                        "place_of_issue": dropdown(row.PlaceOfIssue),
+                        "expired_date": row.CustomerIdentity.expired_date,
+                        "passport_type": dropdown(row.PassportType),
+                        "passport_code": dropdown(row.PassportCode)
+                    },
+                    'basic_information': {
+                        "full_name_vn": row.Customer.full_name_vn,
+                        "gender": dropdown(row.CustomerGender),
+                        "date_of_birth": row.CustomerIndividualInfo.date_of_birth,
+                        "nationality": dropdown(row.AddressCountry),
+                        "place_of_birth": dropdown(row.PlaceOfBirth),
+                        "identity_card_number": row.CustomerIdentity.identity_number_in_passport,
+                        "mrz_content": row.CustomerIdentity.mrz_content
+                    }
+                }
 
     return ReposReturn(data=response_data)
 
