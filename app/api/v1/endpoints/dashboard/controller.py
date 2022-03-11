@@ -10,10 +10,13 @@ class CtrDashboard(BaseController):
             session=self.oracle_session
         ))
         transactions = [{
-            "transaction_code": transaction.id,
+            "cif_id": transaction.id,
             "full_name_vn": transaction.full_name_vn
         } for transaction in transaction_list]
 
+        transactions = transactions[:10]
+
         return self.response_paging(
-            data=transactions[:10]
+            data=transactions,
+            total_item=len(transactions)
         )
