@@ -98,6 +98,9 @@ class SOACIFInformation(BaseSchema):
 class SOACustomerInformation(BaseSchema):
     full_name: Optional[str] = Field(None, description="Họ và tên không dấu")
     full_name_vn: Optional[str] = Field(None, description="Họ và tên có dấu")
+    first_name: Optional[str] = Field(None, description="Họ có dấu")
+    middle_name: Optional[str] = Field(None, description="Tên lót có dấu")
+    last_name: Optional[str] = Field(None, description="Họ có dấu")
     date_of_birth: Optional[str] = Field(None, description="Ngày sinh")
     gender: OptionalDropdownResponse = Field(..., description="Giới tính")
     customer_vip_type: Optional[str] = Field(None, description="Loại VIP khách hàng")
@@ -115,7 +118,21 @@ class SOACustomerIdentityInformation(BaseSchema):
     # place_of_issue: OptionalDropdownResponse = Field(None, description="Nơi cấp")
 
 
-# class SOACustomerAddressInformation(BaseSchema):
+class SOAAddressInfo(BaseSchema):
+    province: OptionalDropdownResponse = Field(None, description="Tỉnh/Thành phố")
+    district: OptionalDropdownResponse = Field(None, description="Quận/Huyện")
+    ward: OptionalDropdownResponse = Field(None, description="Phường/Xã")
+    name: Optional[str] = Field(None, description="Địa chỉ")
+
+
+class SOACustomerAddressInfoRes(BaseSchema):
+    resident_address: SOAAddressInfo = Field(None, description="Địa chỉ thường trú")
+    contact_address: SOAAddressInfo = Field(None, description="Địa chỉ liên lạc")
+    email: Optional[str] = Field(None, description="Email")
+    mobileNum: Optional[str] = Field(None, description="Mobile Number")
+    telephoneNum: Optional[str] = Field(None, description="Telephone Number")
+    phoneNum: Optional[str] = Field(None, description="Phone Number")
+    faxNum: Optional[str] = Field(None, description="Số fax")
 
 
 class CustomerByCIFNumberResponse(BaseSchema):
@@ -124,7 +141,7 @@ class CustomerByCIFNumberResponse(BaseSchema):
     # career_information: DropdownResponse = Field(..., description="Thông tin nghề nghiệp khách hàng")
     identity_information: SOACustomerIdentityInformation = Field(...,
                                                                  description="Thông tin giấy tờ định danh khách hàng")
-    # address_information: SOACustomerAddressInformation = Field(..., description="Thông tin địa chỉ khách hàng")
+    address_info: SOACustomerAddressInfoRes = Field(..., description="Thông tin địa chỉ khách hàng")
 
 
 class CustomerByCIFNumberRequest(BaseSchema):
