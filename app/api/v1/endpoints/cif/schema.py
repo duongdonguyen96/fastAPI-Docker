@@ -19,7 +19,8 @@ class CifInformationResponse(BaseSchema):
 
 
 class CheckExistCIFSuccessResponse(BaseSchema):
-    is_existed: bool = Field(..., description="Cờ đã tồn tại hay chưa <br>`True` => tồn tại <br>`False` => chưa tồn tại")
+    is_existed: bool = Field(...,
+                             description="Cờ đã tồn tại hay chưa <br>`True` => tồn tại <br>`False` => chưa tồn tại")
 
 
 class CheckExistCIFRequest(BaseSchema):
@@ -85,3 +86,47 @@ class CifCustomerInformationResponse(BaseSchema):
     # TODO: đang nghiên cứu employees
     # total_number_of_participant: int = Field(..., description="Tổng số người tham gia")
     # employees: List[EmployeeResponse] = Field(..., description="Danh sách nhân viên")
+
+
+class SOACIFInformation(BaseSchema):
+    cif_number: str = CustomField().CIFNumberField
+    issued_date: str = Field(None, description="Ngày cấp số CIF")
+    branch_code: str = Field(None, description="Mã chi nhánh")
+    customer_type: str = Field(None, description="Loại khách hàng")
+
+
+class SOACustomerInformation(BaseSchema):
+    full_name: Optional[str] = Field(None, description="Họ và tên không dấu")
+    full_name_vn: Optional[str] = Field(None, description="Họ và tên có dấu")
+    date_of_birth: Optional[str] = Field(None, description="Ngày sinh")
+    gender: OptionalDropdownResponse = Field(..., description="Giới tính")
+    customer_vip_type: Optional[str] = Field(None, description="Loại VIP khách hàng")
+    manage_staff_id: Optional[str] = Field(None, description="Mã nhân viên quản lý")
+    director_name: Optional[str] = Field(None, description="Người đại diện( khách hàng doanh nghiệp)")
+    nationality_code: Optional[str] = Field(None, description="Mã quốc tịch")
+    nationality: Optional[str] = Field(None, description="Quốc tịch")
+    is_staff: Optional[str] = Field(None, description="Có phải nhân viên ngân hàng")
+    segment_type: Optional[str] = Field(None, description="Segment khách hàng")
+
+
+class SOACustomerIdentityInformation(BaseSchema):
+    identity_number: Optional[str] = Field(None, description="Số CMND/CCCD/Hộ chiếu")
+    issued_date: Optional[date] = Field(None, description="Ngày cấp")
+    # place_of_issue: OptionalDropdownResponse = Field(None, description="Nơi cấp")
+
+
+# class SOACustomerAddressInformation(BaseSchema):
+
+
+class CustomerByCIFNumberResponse(BaseSchema):
+    cif_information: SOACIFInformation = Field(..., description="Thông tin CIF")
+    customer_information: SOACustomerInformation = Field(..., description="Thông tin khách hàng")
+    # career_information: DropdownResponse = Field(..., description="Thông tin nghề nghiệp khách hàng")
+    identity_information: SOACustomerIdentityInformation = Field(...,
+                                                                 description="Thông tin giấy tờ định danh khách hàng")
+    # address_information: SOACustomerAddressInformation = Field(..., description="Thông tin địa chỉ khách hàng")
+
+
+class CustomerByCIFNumberRequest(BaseSchema):
+    cif_number: str = CustomField().CIFNumberField
+    flat_address: bool = Field(None, description="Có chuyền về dạng flat không, mặc định là `null`")

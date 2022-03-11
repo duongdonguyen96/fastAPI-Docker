@@ -288,3 +288,66 @@ class ServiceSOA:
         except aiohttp.ClientConnectorError as ex:
             logger.error(str(ex))
             return data
+
+    ####################################################################################################################
+    # Thông tin khách hàng dùng chung thông qua số CIF
+    ####################################################################################################################
+    async def retrieve_customer_information_by_cif_number(self, cif_number: str):
+        """
+        Input:
+            cif_number - Số CIF
+            flat_address
+                - True lấy thông tin địa chỉ là string
+                - False lấy thông tin địa chỉ là dict
+        Output: (is_success, is_existed/error_message) - Thành công, Có tồn tại/ Lỗi Service SOA
+        Trả về thông tin địa chỉ là 1 address có mã Code
+        """
+        is_success = True
+        request_data = {
+            "retrieveCustomerRefDataMgmt_in": {
+                "transactionInfo": {
+                    "clientCode": "INAPPTABLET",  # TODO
+                    "cRefNum": "CRM1641783511239",  # TODO
+                    "branchInfo": {
+                        "branchCode": "001"  # TODO
+                    }
+                },
+                "CIFInfo": {
+                    "CIFNum": cif_number
+                }
+            }
+        }
+        api_url = f"{self.url}{SOA_ENDPOINT_URL_RETRIEVE_CUS_REF_DATA_MGMT}"
+        return_data = dict(
+            is_existed=False
+        )
+        try:
+            async with self.session.post(url=api_url, json=request_data) as response:
+                logger.log("SERVICE", f"[SOA] {response.status} {api_url}")
+                if response.status != status.HTTP_200_OK:
+                    logger.error(f"[STATUS]{str(response.status)} [ERROR_INFO]")
+                    return_data.update(message="Service SOA Status error please try again later")
+                    return False, return_data
+
+                response_data = await response.json()
+
+                # Nếu tồn tại CIF
+                if response_data["retrieveCustomerRefDataMgmt_out"]["transactionInfo"]["transactionReturn"] == SOA_REPONSE_STATUS_SUCCESS:
+                    return True, response_data
+
+        except aiohttp.ClientConnectorError as ex:
+            logger.error(str(ex))
+            return_data.update(message="Connect to service SOA error please try again later")
+            return False, return_data
+
+        except KeyError as ex:
+            logger.error(str(ex))
+            return_data.update(message="Key error " + str(ex))
+            return False, return_data
+
+        except aiohttp.InvalidURL as ex:
+            logger.error(str(ex))
+            return_data.update(message=MESSAGE_STATUS[ERROR_INVALID_URL] + ": " + str(ex))
+            return False, return_data
+
+        return is_success, return_data

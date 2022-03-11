@@ -263,3 +263,17 @@ async def repos_validate_cif_number(cif_number: str):
             loc="cif_number"
         )
     return ReposReturn(data=None)
+
+
+async def repos_retrieve_customer_information_by_cif_number(
+        cif_number: str,
+        # flat_address: bool
+):
+    is_success, customer_information = await service_soa.retrieve_customer_information_by_cif_number(
+        cif_number=cif_number,
+        # flat_address=flat_address
+    )
+    if not is_success:
+        return ReposReturn(is_error=True, msg=ERROR_CALL_SERVICE_SOA, detail=customer_information["message"])
+
+    return ReposReturn(data=customer_information)
