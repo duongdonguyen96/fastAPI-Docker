@@ -244,14 +244,18 @@ class CtrEBanking(BaseController):
 
         for item in data_e_banking:
             id_notification = item.EBankingNotification.id
+            if id_notification not in notification_ids:
+                notification_ids.append(id_notification)
+                list_notification.append(item.EBankingNotification)
+
+            if not item.EBankingReceiverNotificationRelationship:
+                continue
+
             id_relationship = item.EBankingReceiverNotificationRelationship.id
             if id_relationship not in relationship_ids:
                 relationship_ids.append(id_relationship)
                 list_relationships.append(
                     (item.EBankingReceiverNotificationRelationship, item.CustomerRelationshipType))
-            if id_notification not in notification_ids:
-                notification_ids.append(id_notification)
-                list_notification.append(item.EBankingNotification)
 
         notification_casa_relationships = [
             {

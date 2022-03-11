@@ -142,10 +142,10 @@ async def repos_get_e_banking_data(cif_id: str, session: Session) -> ReposReturn
     ).join(
         EBankingRegisterBalanceNotification,
         EBankingRegisterBalance.id == EBankingRegisterBalanceNotification.eb_reg_balance_id
-    ).join(
+    ).outerjoin(
         EBankingReceiverNotificationRelationship,
         EBankingRegisterBalance.id == EBankingReceiverNotificationRelationship.e_banking_register_balance_casa_id
-    ).join(
+    ).outerjoin(
         CustomerRelationshipType,
         EBankingReceiverNotificationRelationship.relationship_type_id == CustomerRelationshipType.id
     ).join(
@@ -329,9 +329,7 @@ async def repos_get_payment_accounts(cif_id: str, session: Session) -> ReposRetu
         select(
             CasaAccount,
             AccountType
-        )
-        .join(AccountType, CasaAccount.acc_type_id == AccountType.id)
-        .filter(CasaAccount.customer_id == cif_id)
+        ).join(AccountType, CasaAccount.acc_type_id == AccountType.id).filter(CasaAccount.customer_id == cif_id)
     ).all()
 
     if not payment_accounts:
