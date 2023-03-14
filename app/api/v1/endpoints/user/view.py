@@ -29,7 +29,7 @@ router = APIRouter()
     )
 )
 async def view_list_user(
-        current_user=Depends(get_current_user_from_header()),  # noqa
+        # current_user=Depends(get_current_user_from_header()),  # noqa
         pagination_params: PaginationParams = Depends()
 ):
     paging_users = await CtrUser(is_init_oracle_session=False, pagination_params=pagination_params).ctr_get_list_user()

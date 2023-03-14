@@ -77,5 +77,4 @@ Application parts are::
     │   └── oracle
     └── requirements
 
-Rules: `for dev <https://git.minerva.vn/scb/crm-services/-/wikis/DEV-RULE>`_
 -----------------

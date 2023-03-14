@@ -7,6 +7,13 @@ from pydantic.generics import GenericModel
 from pydantic.schema import date, datetime
 
 from app.utils.functions import date_to_string, datetime_to_string
+from pydantic import BaseModel, conint
+from typing import Optional, Generic, TypeVar
+
+from sqlalchemy import asc, desc
+from sqlalchemy.orm import Query
+from pydantic.generics import GenericModel
+from contextvars import ContextVar
 
 TypeX = TypeVar("TypeX")
 
@@ -57,6 +64,13 @@ class PagingResponse(BaseSchema, GenericModel, Generic[TypeX]):
     total_item: int = Field(..., description='Tổng số item có trong hệ thống')
     total_page: int = Field(..., description='Tổng số trang')
     current_page: int = Field(..., description='Số thứ tự trang hiện tại')
+
+
+class PaginationRequest(BaseSchema):
+    page_size: Optional[conint(gt=0, lt=1001)] = 10
+    current_page: Optional[conint(gt=0)] = 1
+    # sort_by: Optional[str] = 'id'
+    # order: Optional[str] = 'desc'
 
 
 class ResponseData(BaseSchema, GenericModel, Generic[TypeX]):

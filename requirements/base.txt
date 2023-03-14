@@ -22,3 +22,6 @@ cx-Oracle==8.2.1 #https://pypi.org/project/cx-Oracle/8.2.1/
 
 #handle file req/res
 python-multipart==0.0.5 #https://pypi.org/project/python-multipart/
+passlib==1.7.4
+
+mysql-connector-python==8.0.32

@@ -11,6 +11,10 @@ from app.settings.config import (
 )
 from app.utils.constant.utils import UTF_8
 
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 def dropdown(data) -> dict:
     return {
@@ -175,3 +179,11 @@ def is_valid_number(casa_account_number: str):
     if not regex or len(regex.group()) != len(casa_account_number):
         return False
     return True
+
+
+def hash_password(password: str):
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)

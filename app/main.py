@@ -14,9 +14,9 @@ load_dotenv('.env')  # noqa
 from app.api.base.except_custom import ExceptionHandle
 from app.api.v1.endpoints import router as v1_router
 from app.settings.config import APPLICATION
-from app.settings.event import (
-    create_start_app_handler, create_stop_app_handler
-)
+# from app.settings.event import (
+#     create_start_app_handler, create_stop_app_handler
+# )
 from app.settings.middleware import middleware_setting
 from app.utils.error_messages import VALIDATE_ERROR
 
@@ -36,8 +36,8 @@ app.add_middleware(
     allow_headers=["POST", "GET"],
 )
 
-app.add_event_handler("startup", create_start_app_handler(app))
-app.add_event_handler("shutdown", create_stop_app_handler(app))
+# app.add_event_handler("startup", create_start_app_handler(app))
+# app.add_event_handler("shutdown", create_stop_app_handler(app))
 
 
 app.include_router(router=v1_router.router, prefix="/api/v1")

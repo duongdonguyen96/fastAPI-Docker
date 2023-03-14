@@ -4,7 +4,7 @@ from typing import Any
 from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.utils.error_messages import ERROR_COMMIT
+# from app.utils.error_messages import ERROR_COMMIT
 
 
 @dataclass
@@ -39,6 +39,6 @@ def auto_commit(func):
         except SQLAlchemyError as ex:
             logger.error(ex.args)
             session.rollback()
-            return ReposReturn(is_error=True, msg=str(ex.args) if ex.args else ERROR_COMMIT, loc=func.__name__)
+            return ReposReturn(is_error=True, msg=str(ex.args) if ex.args else "ERROR_COMMIT", loc=func.__name__)
 
     return wrapper

@@ -6,18 +6,14 @@ from starlette import status
 
 from app.api.base.except_custom import ExceptionHandle
 from app.api.base.repository import ReposReturn
-from app.api.base.schema import Error
+from app.api.base.schema import Error, PaginationRequest, PagingResponse
 from app.api.base.validator import ValidatorReturn
-from app.api.v1.endpoints.file.repository import (
-    repos_check_is_exist_multi_file, repos_download_multi_file
-)
-from app.api.v1.endpoints.repository import (
-    repos_get_begin_stage, repos_get_model_object_by_id_or_code,
-    repos_get_model_objects_by_ids, repos_get_next_receiver
-)
+
 from app.third_parties.oracle.base import Base, SessionLocal
-from app.third_parties.oracle.models.master_data.others import Branch
+
 from app.utils.functions import generate_uuid
+from sqlalchemy.orm import Query
+from sqlalchemy import func
 
 
 class BaseController:
@@ -167,26 +163,47 @@ class BaseController:
                 "errors": self.errors,
             }
 
-    def response_paging(
-            self,
-            data,
-            total_item: int = 1,
-            current_page: int = 1,
-            total_page: int = 1,
-            error_status_code=status.HTTP_400_BAD_REQUEST
-    ):
-        self._close_oracle_session()
+    # def response_paging(
+    #         self,
+    #         data,
+    #         total_item: int = 1,
+    #         current_page: int = 1,
+    #         total_page: int = 1,
+    #         error_status_code=status.HTTP_400_BAD_REQUEST
+    # ):
+    #     self._close_oracle_session()
+    #
+    #     if self.errors:
+    #         self._raise_exception(error_status_code=error_status_code)
+    #     else:
+    #         return {
+    #             "data": data,
+    #             "total_item": total_item,
+    #             "total_page": total_page,
+    #             "current_page": current_page,
+    #             "errors": self.errors,
+    #         }
 
-        if self.errors:
-            self._raise_exception(error_status_code=error_status_code)
-        else:
-            return {
-                "data": data,
-                "total_item": total_item,
-                "total_page": total_page,
-                "current_page": current_page,
-                "errors": self.errors,
-            }
+    def response_paging(self, query: Query, params: Optional[PaginationRequest]):
+        data = []
+        total_item = query.count()
+        total_page = int(((total_item - 1) / params.page_size) + 1)
+
+        try:
+
+            # if params.order:
+            #     direction = desc if params.order == 'desc' else asc
+            #     query = query.order_by(direction(getattr(model, params.sort_by)))
+            data = query.limit(params.page_size).offset(params.page_size * (params.current_page - 1)).all()
+        except Exception as e:
+            print(e)
+            self._raise_exception(error_status_code=status.HTTP_400_BAD_REQUEST)
+        return {
+            'data': data,
+            'total_item': total_item,
+            'total_page': total_page,
+            'current_page': params.current_page
+        }
 
     def nested_list(
             self,
@@ -290,7 +307,8 @@ class BaseController:
                             data_parent[temp[map_with_key]][key_field].append(temp[key_field][0])
         return list(data_parent.values())
 
-    def _nest_child_to_parent(self, parent_list, map_with_key: str, children_fields: dict, children_list: list = None, key_child_map_parent=None):
+    def _nest_child_to_parent(self, parent_list, map_with_key: str, children_fields: dict, children_list: list = None,
+                              key_child_map_parent=None):
 
         all_key_child = []
         for key_child, value_child in children_fields.items():
@@ -471,5 +489,7 @@ class BaseController:
             position_name=None  # TODO
         )
 
-        return (saving_transaction_stage_status, saving_transaction_stage, saving_transaction_daily, saving_transaction_sender,
-                saving_transaction_receiver)
+        return (
+            saving_transaction_stage_status, saving_transaction_stage, saving_transaction_daily,
+            saving_transaction_sender,
+            saving_transaction_receiver)
